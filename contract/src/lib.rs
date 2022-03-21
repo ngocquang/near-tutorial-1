@@ -1,14 +1,4 @@
 //! Fork from Counter Tutorial
-//! This contract implements simple counter backed by storage on blockchain.
-//!
-//! The contract provides methods to [increment] / [decrement] counter and
-//! [get it's current value][get_num] or [reset].
-//!
-//! [increment]: struct.Counter.html#method.increment
-//! [decrement]: struct.Counter.html#method.decrement
-//! [get_num]: struct.Counter.html#method.get_num
-//! [reset]: struct.Counter.html#method.reset
-
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::{env, near_bindgen};
 
@@ -20,36 +10,35 @@ near_sdk::setup_alloc!();
 #[derive(Default, BorshDeserialize, BorshSerialize)]
 pub struct Counter {
     // See more data types at https://doc.rust-lang.org/book/ch03-02-data-types.html
-    val: i8, // i8 is signed. unsigned integers are also available: u8, u16, u32, u64, u128
+    result: i8, // i8 is signed. unsigned integers are also available: u8, u16, u32, u64, u128
 }
 
 #[near_bindgen]
 impl Counter {
-    pub fn get_num(&self) -> i8 {
-        return self.val;
+    pub fn get_result(&self) -> i8 {
+        return self.result;
     }
-    pub fn increment(&mut self) {
-        // self.val += 1;
-        self.val = i8::wrapping_add(self.val, 2);
+    pub fn mul(&mut self, x: i8, y: i8) {
+        self.result = i8::wrapping_mul(x, y);
 
-        let log_message = format!("Increased number to {}", self.val);
+        let log_message = format!("Multiply result {}", self.result);
         env::log(log_message.as_bytes());
         after_counter_change();
     }
 
-    pub fn decrement(&mut self) {
-        // self.val -= 1;
-        self.val = i8::wrapping_sub(self.val, 2);
-        let log_message = format!("Decreased number to {}", self.val);
+    pub fn div(&mut self, x: i8, y: i8) {
+        // self.result -= 1;
+        self.result = i8::wrapping_div(x, y);
+        let log_message = format!("Divide retult {}", self.result);
         env::log(log_message.as_bytes());
         after_counter_change();
     }
 
     /// Reset to zero.
     pub fn reset(&mut self) {
-        self.val = 0;
+        self.result = 0;
         // Another way to log is to cast a string into bytes, hence "b" below:
-        env::log(b"Reset counter to zero");
+        env::log(b"Reset result to zero");
     }
 }
 
@@ -58,7 +47,7 @@ impl Counter {
 // while this function cannot be invoked directly on the blockchain, it can be called from an invoked function
 fn after_counter_change() {
     // show helpful warning that i8 (8-bit signed integer) will overflow above 127 or below -128
-    env::log("Make sure you don't overflow, my friend.".as_bytes());
+    env::log("Done!".as_bytes());
 }
 
 /*
@@ -93,38 +82,38 @@ mod tests {
 
     // mark individual unit tests with #[test] for them to be registered and fired
     #[test]
-    fn increment() {
+    fn multiply() {
         // set up the mock context into the testing environment
         let context = get_context(to_valid_account("foo.near"));
         testing_env!(context.build());
         // instantiate a contract variable with the counter at zero
-        let mut contract = Counter { val: 0 };
-        contract.increment();
-        println!("Value after increment: {}", contract.get_num());
-        // confirm that we received 1 when calling get_num
-        assert_eq!(2, contract.get_num());
+        let mut contract = Counter { result: 0 };
+        contract.mul(5, 20);
+        println!("Result after multiply: {}", contract.get_result());
+        // confirm that we received 1 when calling get_result
+        assert_eq!(100, contract.get_result());
     }
 
     #[test]
-    fn decrement() {
+    fn divide() {
         let context = VMContextBuilder::new();
         testing_env!(context.build());
-        let mut contract = Counter { val: 0 };
-        contract.decrement();
-        println!("Value after decrement: {}", contract.get_num());
-        // confirm that we received -1 when calling get_num
-        assert_eq!(-2, contract.get_num());
+        let mut contract = Counter { result: 0 };
+        contract.div(20, 10);
+        println!("Result after divide: {}", contract.get_result());
+        // confirm that we received -1 when calling get_result
+        assert_eq!(2, contract.get_result());
     }
 
     #[test]
-    fn increment_and_reset() {
+    fn divide_and_reset() {
         let context = VMContextBuilder::new();
         testing_env!(context.build());
-        let mut contract = Counter { val: 0 };
-        contract.increment();
+        let mut contract = Counter { result: 0 };
+        contract.div(10, 5);
         contract.reset();
-        println!("Value after reset: {}", contract.get_num());
-        // confirm that we received -1 when calling get_num
-        assert_eq!(0, contract.get_num());
+        println!("Result after reset: {}", contract.get_result());
+        // confirm that we received -1 when calling get_result
+        assert_eq!(0, contract.get_result());
     }
 }
